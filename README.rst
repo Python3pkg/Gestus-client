@@ -32,7 +32,7 @@ Config
 
 The client can be used directly, but you should create a ``gestus.cfg`` file in your project to avoid to put arguments on the command line.
 
-The file format is like ``*.INI`` : ::
+The file format is like ``*.INI`` file, here is a full example : ::
 
     [Gestus]
     user = your_username
@@ -46,14 +46,14 @@ The file format is like ``*.INI`` : ::
 
 Available options are :
 
-* user: the username to connect to the service;
-* password = the password to connect to the service;
-* host = the service's url (http/https);
-* name = the website project name;
-* url = the website project url (where it should be published);
-* env = the environment kind name (``integration`` or ``production``);
-* eggs = the path to eggs directory to scan;
-* server = the website hostname;
+* **user**: the username to connect to the service;
+* **password**: the password to connect to the service;
+* **host**: the service's url (http/https);
+* **name**: the website project name;
+* **url**: the website project url (where it should be published);
+* **env**: the environment kind name (``integration`` or ``production``);
+* **eggs**: the path to eggs directory to scan;
+* **server**: the website hostname;
 
 There are all optionnal to register a new environment. But to update an allready existing environment you will need at least two additional options :
 
@@ -67,6 +67,19 @@ Note that a Config file is automatically saved at the end of a register or updat
 
     gestus --passive
 
-Else the default behavior is to saved a ``gestus.cfg`` file the current directory, you can set another filename and path with ``config`` argument : ::
+Else the default behavior is to save a ``gestus.cfg`` file in the current directory, you can set another filename and path with ``config`` argument : ::
 
     gestus --config /home/foo/bar/my-gestus-config.cfg
+
+Register a new website environment
+==================================
+
+This will only register a new environment, you can't update an allready existing website environment datas from this command.
+
+    gestus register
+
+If the website environment allready exists, the register command will get its datas and saving in a config file, then it will send again the egg list, this is the only thing that can be updated from this command.
+
+If it does not exist, it will create it, then send the egg list and save returned datas in the config file.
+
+

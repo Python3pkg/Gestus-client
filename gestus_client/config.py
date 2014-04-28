@@ -1,6 +1,9 @@
 import os, ConfigParser
 
 class GestusConfig(object):
+    """
+    Gestus config object know how to get, set and save data from/to the config file
+    """
     main_section_name = 'Gestus'
     options = ['user', 'password', 'host', 'eggs', 'name', 'url', 'env', 'server', 'website_id', 'environment_id']
     integers = ['website_id', 'environment_id']

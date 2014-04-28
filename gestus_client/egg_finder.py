@@ -18,7 +18,7 @@ class BuildoutConfigFinder(BaseFinder):
     Find installed eggs from the given buildout config
     
     WARNING: This implementation is not really working because it follows config 
-             extends but the '+=' does not seem to be honored in option merging 
+             extends and the '+=' does not seem to be honored in option merging 
              with ConfigParser
     """
     def __init__(self, initial_config):
