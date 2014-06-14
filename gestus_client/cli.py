@@ -12,7 +12,7 @@ from argh.exceptions import CommandError
 from gestus_client import logging_handler
 from gestus_client import __version__ as client_version
 from gestus_client.config import GestusConfig
-from gestus_client.client import GestusClient, ENVIRONMENT_KIND_CHOICES
+from gestus_client.client import GestusClient, ENVIRONMENT_KIND_CHOICES, ENVIRONMENT_KIND_KEYS
 
 @arg('-u', '--user', default=None, help="Username to connect to the service")
 @arg('-p', '--password', default=None, help="Password to connect to the service")
@@ -25,7 +25,7 @@ from gestus_client.client import GestusClient, ENVIRONMENT_KIND_CHOICES
 @arg('-g', '--eggs', default=None, help="Path to the eggs directory to scan")
 @arg('--name', default=None, help="Website name")
 @arg('--url', default=None, help="Website url")
-@arg('--env', default=None, choices=[k for k,v in ENVIRONMENT_KIND_CHOICES], help="Environnment name")
+@arg('--env', default=None, choices=ENVIRONMENT_KIND_KEYS, help="Environnment name")
 @arg('--server', default=None, help="Environnment server address/hostname")
 def register(args):
     """
@@ -54,6 +54,7 @@ def register(args):
     if not args.name or not args.url or not args.env:
         root_logger.error("'name', 'url' and 'env' are required arguments to register the current environnment")
         raise CommandError('Error exit')
+    
     # Validate eggs path argument
     if args.eggs and not os.path.exists(args.eggs):
         root_logger.error("The given eggs path does not exists")
@@ -61,6 +62,14 @@ def register(args):
     if args.eggs and not os.path.isdir(args.eggs):
         root_logger.error("The given eggs path is not a directory")
         raise CommandError('Error exit')
+    # Validate environnment
+    if args.env not in ENVIRONMENT_KIND_KEYS:
+        root_logger.error("Invalid environnment given '%s'. Valid choices are: %s", args.env, ', '.join(ENVIRONMENT_KIND_KEYS))
+        raise CommandError('Error exit')
+    # Validate url
+    if args.url.find(' '):
+        root_logger.warning("Seems you tried to define multiple url separated with spaces, Gestus only accepts one url for a website, the value has been splitted to get the first one item")
+        args.url = args.url.split(' ')[0]
     
     # Open client
     con = GestusClient(args.host, (args.user, args.password))

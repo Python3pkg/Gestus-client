@@ -10,6 +10,7 @@ ENVIRONMENT_KIND_CHOICES = (
     ('integration', 'Integration'),
     ('production', 'Production'),
 )
+ENVIRONMENT_KIND_KEYS = [k for k,v in ENVIRONMENT_KIND_CHOICES]
 
 ## The Following part is duplicated from nap.url because it is required to override 
 ## the ``JsonApi._new_url`` stuff
