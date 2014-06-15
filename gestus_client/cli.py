@@ -12,7 +12,7 @@ from argh.exceptions import CommandError
 from gestus_client import logging_handler
 from gestus_client import __version__ as client_version
 from gestus_client.config import GestusConfig
-from gestus_client.client import GestusClient, ENVIRONMENT_KIND_CHOICES, ENVIRONMENT_KIND_KEYS
+from gestus_client.client import GestusClient, WebsitePostException, ENVIRONMENT_KIND_CHOICES, ENVIRONMENT_KIND_KEYS
 
 
 # Available common options for all commands
@@ -101,28 +101,28 @@ class CliInterfaceBase(object):
     def validate_website_args(self):
         # Validate required argument to register
         if not self.args.name or not self.args.url or not self.args.env:
-            root_logger.error("'name', 'url' and 'env' are required arguments to register the current environnment")
+            self.root_logger.error("'name', 'url' and 'env' are required arguments to register the current environnment")
             raise CommandError('Error exit')
     
     def validate_eggs_args(self):
         # Validate eggs path argument
         if self.args.eggs and not os.path.exists(self.args.eggs):
-            root_logger.error("The given eggs path does not exists")
+            self.root_logger.error("The given eggs path does not exists")
             raise CommandError('Error exit')
         if self.args.eggs and not os.path.isdir(self.args.eggs):
-            root_logger.error("The given eggs path is not a directory")
+            self.root_logger.error("The given eggs path is not a directory")
             raise CommandError('Error exit')
     
     def validate_env_args(self):
         # Validate environnment
         if self.args.env not in ENVIRONMENT_KIND_KEYS:
-            root_logger.error("Invalid environnment given '%s'. Valid choices are: %s", self.args.env, ', '.join(ENVIRONMENT_KIND_KEYS))
+            self.root_logger.error("Invalid environnment given '%s'. Valid choices are: %s", self.args.env, ', '.join(ENVIRONMENT_KIND_KEYS))
             raise CommandError('Error exit')
     
     def validate_url_args(self):
         # Validate url
         if self.args.url.find(' ') > -1:
-            root_logger.warning("Seems you tried to define multiple url separated with spaces, Gestus only accepts one url for a website, the value has been splitted to get the first one item")
+            self.root_logger.warning("Seems you tried to define multiple url separated with spaces, Gestus only accepts one url for a website, the value has been splitted to get the first one item")
             self.args.url = self.args.url.split(' ')[0]
 
 
@@ -159,13 +159,22 @@ def register(args):
     register_args = [interface.args.name, interface.args.url, interface.args.env]
     if interface.args.server:
         register_args.append(interface.args.server)
-    interface.args.website_id, interface.args.environment_id = interface.con.register(*register_args)
-    # Update server host
+    try:
+        interface.args.website_id, interface.args.environment_id = interface.con.register(*register_args)
+    except WebsitePostException as e:
+        interface.root_logger.error(e)
+        raise CommandError('Error exit')
+    
+    # Update server host for saving in config file
     interface.args.server = interface.con.environment_server
         
     # Register egg list
     if interface.args.eggs:
-        interface.con.register_eggs(interface.args.eggs)
+        try:
+            interface.con.register_eggs(interface.args.eggs)
+        except WebsitePostException as e:
+            interface.root_logger.error(e)
+            raise CommandError('Error exit')
     
     interface.save_config()
     interface.close()
@@ -186,7 +195,7 @@ def register(args):
 @cmd_websiteserver_opt
 def update(args):
     """
-    Update current environnment
+    TODO: Update current environnment
     """
     starttime = datetime.datetime.now()
     # Init, load and builds

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json, logging, platform
 
+from requests.exceptions import HTTPError
+
 from nap.url import Url
 
 from gestus_client import __version__ as client_version
@@ -11,6 +13,9 @@ ENVIRONMENT_KIND_CHOICES = (
     ('production', 'Production'),
 )
 ENVIRONMENT_KIND_KEYS = [k for k,v in ENVIRONMENT_KIND_CHOICES]
+
+class WebsitePostException(HTTPError):
+    pass
 
 class GestusClient(object):
     _connected = False
@@ -75,6 +80,16 @@ class GestusClient(object):
         for item in websites.get('results'):
             self._websites_map[item.get('name')] = item
     
+    def print_reason(self, response_json):
+        """
+        Print out API exception reason
+        """
+        msg = []
+        for k,v in response_json.items():
+            v = [item.encode('UTF8') for item in v]
+            msg.append("- {0}: {1}".format(k, ', '.join(v)))
+        return msg
+    
     def _post_json(self, endpoint, payload):
         """
         Just a shortcut for endpoint.post to avoid to redo headers, json dump, etc..
@@ -82,8 +97,12 @@ class GestusClient(object):
         ``endpoint`` is the the api endpoint Url (a nap.Url object), payload is the 
         dict of data to POST.
         """
-        resp = endpoint.post(data=json.dumps(payload), headers=self.client_headers)
-        return resp.json()
+        response = endpoint.post(data=json.dumps(payload), headers=self.client_headers)
+        if response.status_code == 400:
+            raise WebsitePostException('\n'.join(['Unable to POST datas, reasons are:']+self.print_reason(response.json())))
+        elif response.status_code != 200:
+            response.raise_for_status()
+        return response.json()
     
     def _register_website(self, website_id, name=None, url=None):
         self.website_id = website_id
