@@ -62,17 +62,6 @@ class GestusConfig(object):
             self._datas[item] = val
         return self._datas
     
-    #def get_datas(self):
-        #"""
-        #Get all valid datas from the readed config file
-        #"""
-        #if self._datas is None:
-            #self._datas = {}
-        #q = [item for item in self.parser.options(self.main_section_name) if item in self.options]
-        #for item in q:
-            #self._datas[item] = self.parser.get(self.main_section_name, item)
-        #return self._datas
-    
     def save(self):
         """
         Saving changes to the config file

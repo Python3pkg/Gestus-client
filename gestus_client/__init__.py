@@ -2,4 +2,4 @@
 """
 REST client to retrieve and push data on a Gestus service
 """
-__version__ = '0.1'
+__version__ = '0.1.1'

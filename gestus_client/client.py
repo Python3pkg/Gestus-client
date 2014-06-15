@@ -12,52 +12,7 @@ ENVIRONMENT_KIND_CHOICES = (
 )
 ENVIRONMENT_KIND_KEYS = [k for k,v in ENVIRONMENT_KIND_CHOICES]
 
-## The Following part is duplicated from nap.url because it is required to override 
-## the ``JsonApi._new_url`` stuff
-#import sys
-
-#_PY3 = sys.version_info >= (3, 0)
-
-## For Python 3 compatibility
-#if _PY3:
-    #from urllib.parse import urljoin
-#else:
-    #from urlparse import urljoin
-
-#class JsonApi(Url):
-    #"""
-    #Fork and pull request 'nap' to push the enhances when done
-    #"""
-    ##def after_request(self, response):
-        ##"""
-        ##Doesn't used until i find how i can add an option to permit to not 
-        ##allways return the Json response, sometime it will be needed to 
-        ##have something like the raw() response
-        ##"""
-        ##if response.status_code != 200:
-            ##response.raise_for_status()
-
-        ##return response.json()
-
-    #def _new_url(self, relative_url):
-        #"""
-        #Create new Url which points to new url.
-        
-        #TODO : We should find a way to change the used class and not hardcoded 
-        #like this
-        #"""
-        #return JsonApi(
-            #urljoin(self._base_url, relative_url),
-            #**self._default_kwargs
-        #)
-
 class GestusClient(object):
-    """
-    
-    TODO: * Use a decorator to check _connected for some class methods (like register)
-          * Write ``gestus.conf`` INI file to store paramaters config for current project
-          * Writing ``gestus.conf`` file is optionnal
-    """
     _connected = False
     _websites_map = {}
     
