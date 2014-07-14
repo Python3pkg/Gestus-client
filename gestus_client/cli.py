@@ -26,7 +26,7 @@ cmd_logfile_opt = arg('--logfile', default=None, help="A filepath that if setted
 cmd_timer_opt = arg('-t', '--timer', default=False, action='store_true', help="Display elapsed time at the end of execution")
 cmd_eggs_opt = arg('-g', '--eggs', default=None, help="Path to the eggs directory to scan")
 cmd_websitename_opt = arg('--name', default=None, help="Website name")
-cmd_websiteurl_opt = arg('--url', default=None, help="Website url")
+cmd_websiteurl_opt = arg('--url', default=None, help="Environnment url")
 cmd_websiteenv_opt = arg('--env', default=None, choices=ENVIRONMENT_KIND_KEYS, help="Environnment name")
 cmd_websiteserver_opt = arg('--server', default=None, help="Environnment server address/hostname")
 
@@ -101,7 +101,7 @@ class CliInterfaceBase(object):
     def validate_website_args(self):
         # Validate required argument to register
         if not self.args.name or not self.args.url or not self.args.env:
-            self.root_logger.error("'name', 'url' and 'env' are required arguments to register the current environnment")
+            self.root_logger.error("'name', 'url' and 'env' are required arguments to register the current environment")
             raise CommandError('Error exit')
     
     def validate_eggs_args(self):
@@ -114,15 +114,15 @@ class CliInterfaceBase(object):
             raise CommandError('Error exit')
     
     def validate_env_args(self):
-        # Validate environnment
+        # Validate environment kind
         if self.args.env not in ENVIRONMENT_KIND_KEYS:
-            self.root_logger.error("Invalid environnment given '%s'. Valid choices are: %s", self.args.env, ', '.join(ENVIRONMENT_KIND_KEYS))
+            self.root_logger.error("Invalid environment given '%s'. Valid choices are: %s", self.args.env, ', '.join(ENVIRONMENT_KIND_KEYS))
             raise CommandError('Error exit')
     
     def validate_url_args(self):
         # Validate url
         if self.args.url.find(' ') > -1:
-            self.root_logger.warning("Seems you tried to define multiple url separated with spaces, Gestus only accepts one url for a website, the value has been splitted to get the first one item")
+            self.root_logger.warning("Seems you tried to define multiple url separated with spaces, Gestus only accepts one url for an environment, the value has been splitted to get the first one item")
             self.args.url = self.args.url.split(' ')[0]
 
 
@@ -141,7 +141,7 @@ class CliInterfaceBase(object):
 @cmd_websiteserver_opt
 def register(args):
     """
-    Register current environnment
+    Register current environment
     """
     interface = CliInterfaceBase(args)
     
@@ -195,7 +195,7 @@ def register(args):
 @cmd_websiteserver_opt
 def update(args):
     """
-    TODO: Update current environnment
+    TODO: Update current environment
     """
     starttime = datetime.datetime.now()
     # Init, load and builds

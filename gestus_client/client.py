@@ -32,7 +32,7 @@ class GestusClient(object):
     
     website_id = None
     website_name = None
-    website_url = None
+    environment_url = None
     
     environment_id = None
     environment_name = None
@@ -104,26 +104,26 @@ class GestusClient(object):
             response.raise_for_status()
         return response.json()
     
-    def _register_website(self, website_id, name=None, url=None):
+    def _register_website(self, website_id, name=None):
         self.website_id = website_id
         self.website_name = name
-        self.website_url = url
         self.website_detail_url = self.api_endpoint_websites.join('{0}/'.format(self.website_id))
     
-    def _register_environment(self, environment_id, name=None, server=None):
+    def _register_environment(self, environment_id, name=None, url=None, server=None):
         self.environment_id = environment_id
         self.environment_name = name
+        self.environment_url = url
         self.environment_server = server
         self.environment_detail_url = self.api_endpoint_environments.join('{0}/'.format(self.environment_id))
     
-    def register(self, name, url, environment_name, environment_server=platform.node()):
+    def register(self, name, environment_url, environment_name, environment_server=platform.node()):
         """
         Register the website environment
         
         Required arguments:
         
         @name: website name to search or create
-        @url: website url to use for creating a new website entry
+        @environment_url: website environment url to use for creating a new website entry
         @environment_name: website environment name to search or create
         @environment_server: website environment server to use for creating a new environment entry
         """
@@ -132,13 +132,13 @@ class GestusClient(object):
         # Get or create the website
         if name not in self._websites_map:
             self.logger.info("Creating new website entry for: {0}".format(name))
-            payload = {'name':name, 'url':url, 'enabled':True}
+            payload = {'name':name, 'enabled':True}
             entry = self._post_json(self.api_endpoint_websites, payload)
         else:
             entry = self._websites_map[name]
             self.logger.debug("Website entry '{0}' allready exists".format(name))
         
-        self._register_website(entry['id'], entry['name'], entry['url'])
+        self._register_website(entry['id'], entry['name'])
         
         # Get or create the environment
         finder = lambda x: x['name']==environment_name
@@ -147,12 +147,12 @@ class GestusClient(object):
             environment = filter(finder, envs)[0]
         except IndexError:
             self.logger.info("Creating new environment entry for: {0}".format(environment_name))
-            payload = {'name': environment_name, 'server': environment_server, 'website': self.website_id, 'enabled':True}
+            payload = {'name': environment_name, 'url':environment_url, 'server': environment_server, 'website': self.website_id, 'enabled':True}
             environment = self._post_json(self.api_endpoint_environments, payload)
         else:
             self.logger.debug("Environment entry '{0}' allready exists".format(environment_name))
         
-        self._register_environment(environment['id'], environment['name'], environment['server'])
+        self._register_environment(environment['id'], environment['name'], environment['url'], environment['server'])
         
         return self.website_id, self.environment_id
     

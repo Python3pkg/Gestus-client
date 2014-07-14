@@ -25,7 +25,7 @@ During the register or update action, if the eggs directory is given it will be 
 
 Website environment's datas can be setted either from the command line arguments or from a config file. If a config file is used it will be used to fill the default datas to send and you can overrides them with the command line arguments. 
 
-So if in the Config file you set the ``user`` option to ``ping`` and set this option to ``pong`` in the command line args, the used value will be ``pong``.
+So if in the Config file you setted the ``user`` option to ``ping`` and set this option to ``pong`` in the command line args, the used value will be ``pong``.
 
 Config
 ******
@@ -35,14 +35,14 @@ The client can be used directly, but you should create a ``gestus.cfg`` file in 
 The file format is like ``*.INI`` file, here is a full example : ::
 
     [Gestus]
-    user = your_username
-    password = your_password
-    host = service_url
-    name = website_name
-    url = website_url
-    env = environment_name
-    eggs = eggs_directory
-    server = website_hostname
+    user = your username
+    password = your password
+    host = service url
+    name = website name
+    url = environment url
+    env = environment name
+    eggs = eggs directory
+    server = website hostname
 
 Available options are :
 
@@ -50,7 +50,7 @@ Available options are :
 * **password**: the password to connect to the service;
 * **host**: the service's url (http/https);
 * **name**: the website project name;
-* **url**: the website project url (where it should be published);
+* **url**: the environment url where the project is attempted to be published;
 * **env**: the environment kind name (``integration`` or ``production``);
 * **eggs**: the path to eggs directory to scan;
 * **server**: the website hostname;
@@ -70,6 +70,8 @@ Note that a Config file is automatically saved at the end of a register or updat
 Else the default behavior is to save a ``gestus.cfg`` file in the current directory, you can set another filename and path with ``config`` argument : ::
 
     gestus --config /home/foo/bar/my-gestus-config.cfg
+
+So if you have multiple site to support in a single project, allways use a specific config file for each site.
 
 Register a new website environment
 ==================================
