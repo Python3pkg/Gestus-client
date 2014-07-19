@@ -1,17 +1,52 @@
 import os, ConfigParser
 import pkginfo
+from pkg_resources import parse_version
+
+class Version(tuple):
+    """
+    This permit to store the returned tuple of ``pkg_resources.parse_version``
+    but keeping also it's "raw" string version name, to avoid to re-parse 
+    the returned version name from ``pkg_resources.parse_version``
+    """
+    def __new__ (cls, version_tuple):
+        return super(Version, cls).__new__(cls, parse_version(version_tuple))
+
+    def __init__(self, version_tuple):
+        self.raw_version_name = version_tuple
+        super(Version, self).__init__(version_tuple)
 
 class BaseFinder(object):
     """
     Base finder for installed eggs
+    
+    NOTE: Implementation of _eggs_map and clean_egg_list usage will probably don
+    't be compatible with other implementation than BuildoutEggdirFinder, so it will 
+    probably need to be moved for/in BuildoutEggdirFinder only
     """
     eggs = []
+    _eggs_map = {}
+    
+    def add_egg(self, name, version):
+        if name not in self._eggs_map:
+            self._eggs_map[name] = []
+        self._eggs_map[name].append(version)
     
     def format_egg_row(self, name, version):
         return "{name}={version}".format(name=name, version=version)
     
+    def clean_egg_list(self):
+        """
+        Distinct the last version from each package to make a clean list 
+        for packages with their last version name
+        """
+        d = []
+        for k,v in self._eggs_map.items():
+            version_name = max(v)
+            d.append( (k, version_name.raw_version_name) )
+        return d
+    
     def render(self):
-        return '\n'.join([self.format_egg_row(k,v) for k,v in self.eggs])
+        return '\n'.join([self.format_egg_row(k,v) for k,v in self.clean_egg_list()])
 
 class BuildoutConfigFinder(BaseFinder):
     """
@@ -46,12 +81,12 @@ class BuildoutConfigFinder(BaseFinder):
         """
         Recursively find all configs extends filepaths
         """
-        print "config:", config_path
+        #print "config:", config_path
         paths.append(config_path)
         
         current_path, current_filename = os.path.split(config_path)
-        print "* current_path:", current_path
-        print "* current_filename:", current_filename
+        #print "* current_path:", current_path
+        #print "* current_filename:", current_filename
         
         # Read the file to find extend option
         parser = self.get_configparser()
@@ -65,7 +100,7 @@ class BuildoutConfigFinder(BaseFinder):
         else:
             config_extends = os.path.join(current_path, config_extends)
             if os.path.exists(config_extends):
-                print "config_extends:", config_extends
+                #print "config_extends:", config_extends
                 paths = self.recurse_config_finder(config_extends)
         
         return paths
@@ -91,17 +126,6 @@ class BuildoutConfigFinder(BaseFinder):
                 version_name = "unknow"
 
             self.eggs.append( (egg_name, version_name) )
-        return self.eggs
-
-
-class PipFinder(BaseFinder):
-    """
-    TODO: ?
-    
-    Find installed eggs from PIP frozen file (like requirements.txt)
-    """
-    pass
-
 
 class BuildoutEggdirFinder(BaseFinder):
     """
@@ -123,6 +147,9 @@ class BuildoutEggdirFinder(BaseFinder):
         for item in os.listdir(self.eggs_dir):
             infos = pkginfo.Develop(os.path.join(self.eggs_dir, item))
             self.eggs.append( (infos.name, infos.version) )
+            
+            #self.add_egg(infos.name, Version(parse_version(infos.version), raw_version_name=infos.version))
+            self.add_egg(infos.name, Version(infos.version))
 
 # Testing
 if __name__ == "__main__":
