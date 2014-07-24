@@ -163,13 +163,19 @@ class GestusClient(object):
         self.logger.debug("Scanning for eggs in directory: {0}".format(egg_dir))
         finder = egg_finder.BuildoutEggdirFinder(egg_dir)
         finder.crawl()
-        egg_list = finder.render()
+        #egg_list = finder.render()
+        eggs_map = finder.get_eggs_dict()
         
         if commit:
             self.logger.info("Sending eggs ({0} items)".format(len(finder.eggs)))
-            resp = self.environment_detail_url.patch(data=json.dumps({'egg_list': egg_list}), headers=self.client_headers)
+            #response = self.environment_detail_url.patch(data=json.dumps({'egg_list': egg_list}), headers=self.client_headers)
+            response = self.environment_detail_url.patch(data=str(json.dumps({'egg_list': eggs_map})), headers=self.client_headers)
+            if response.status_code != 200:
+                if self.debug_requests:
+                    print response.json()
+                response.raise_for_status()
         
-        return egg_list
+        return eggs_map
     
     def update(self, website_kwargs={}, environment_kwargs={}, egg_dir=None):
         """
@@ -179,7 +185,7 @@ class GestusClient(object):
             response = self.website_detail_url.patch(data=json.dumps(website_kwargs), headers=self.client_headers)
             if response.status_code != 200:
                 if self.debug_requests:
-                    print response.json()
+                    print response.json(indent=4)
                 response.raise_for_status()
         
         # If egg directory is given, add the egg list to the update

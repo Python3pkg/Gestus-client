@@ -1,35 +1,15 @@
-import os, ConfigParser
-import pkginfo
-from pkg_resources import parse_version
-
-class Version(tuple):
-    """
-    This permit to store the returned tuple of ``pkg_resources.parse_version``
-    but keeping also it's "raw" string version name, to avoid to re-parse 
-    the returned version name from ``pkg_resources.parse_version``
-    """
-    def __new__ (cls, version_tuple):
-        return super(Version, cls).__new__(cls, parse_version(version_tuple))
-
-    def __init__(self, version_tuple):
-        self.raw_version_name = version_tuple
-        super(Version, self).__init__(version_tuple)
+import os, ConfigParser, pkginfo, pkg_resources
 
 class BaseFinder(object):
     """
     Base finder for installed eggs
-    
-    NOTE: Implementation of _eggs_map and clean_egg_list usage will probably don
-    't be compatible with other implementation than BuildoutEggdirFinder, so it will 
-    probably need to be moved for/in BuildoutEggdirFinder only
     """
-    eggs = []
-    _eggs_map = {}
+    eggs = {}
     
     def add_egg(self, name, version):
-        if name not in self._eggs_map:
-            self._eggs_map[name] = []
-        self._eggs_map[name].append(version)
+        if name not in self.eggs:
+            self.eggs[name] = []
+        self.eggs[name].append(version)
     
     def format_egg_row(self, name, version):
         return "{name}={version}".format(name=name, version=version)
@@ -40,9 +20,30 @@ class BaseFinder(object):
         for packages with their last version name
         """
         d = []
-        for k,v in self._eggs_map.items():
-            version_name = max(v)
-            d.append( (k, version_name.raw_version_name) )
+        for k,v in self.eggs.items():
+            d.append( (k, v) )
+        return d
+    
+    def clean_eggs(self):
+        """
+        Distinct the last version from each package to make a clean list 
+        for packages with their last version name
+        """
+        d = {}
+        for k,v in self.eggs.items():
+            d[k] = v.package_infos
+        return d
+    
+    def get_eggs_dict(self):
+        d = {}
+        for k,v in self.clean_eggs().items():
+            summary = v.summary or ''
+            d[k] = {
+                'version': v.version,
+                'url': v.home_page or '',
+                'summary': summary,#.encode('UTF8'),
+                'description': v.description or '',
+            }
         return d
     
     def render(self):
@@ -125,7 +126,33 @@ class BuildoutConfigFinder(BaseFinder):
             except:
                 version_name = "unknow"
 
-            self.eggs.append( (egg_name, version_name) )
+            self.add_egg(egg_name, version_name)
+
+class OldVersion(tuple):
+    """
+    This permit to store the returned tuple of ``pkg_resources.parse_version``
+    but keeping also it's "raw" string version name, to avoid to re-parse 
+    the returned version name from ``pkg_resources.parse_version``
+    """
+    def __new__ (cls, version_tuple):
+        return super(Version, cls).__new__(cls, pkg_resources.parse_version(version_tuple))
+
+    def __init__(self, version_tuple):
+        self.raw_version_name = version_tuple
+        super(Version, self).__init__(version_tuple)
+
+class Version(tuple):
+    """
+    This permit to store the returned tuple of ``pkg_resources.parse_version``
+    but keeping also it's "raw" string version name, to avoid to re-parse 
+    the returned version name from ``pkg_resources.parse_version``
+    """
+    def __new__ (cls, package_infos):
+        return super(Version, cls).__new__(cls, pkg_resources.parse_version(package_infos.version))
+
+    def __init__(self, package_infos):
+        self.package_infos = package_infos
+        super(Version, self).__init__(package_infos)
 
 class BuildoutEggdirFinder(BaseFinder):
     """
@@ -133,23 +160,58 @@ class BuildoutEggdirFinder(BaseFinder):
     
     This should get the installed eggs list (like the one generated within 
     django-instance script) and parse their "EGG-INFO/PKG-INFO" file to know 
-    the name and the version.
+    package informations like name, url, version, etc...
     
     Note that this will not work for egg installed in develop mode.
     """
     def __init__(self, eggs_dir):
         self.eggs_dir = eggs_dir
-            
+    
+    def clean_egg_list(self):
+        """
+        Distinct the last version from each package to make a clean list 
+        for packages with their last version name
+        """
+        d = []
+        for k,v in self.eggs.items():
+            version_name = max(v)
+            d.append( (k, version_name.package_infos) )
+        return d
+    
+    def clean_eggs(self):
+        """
+        Distinct the last version from each package to make a clean list 
+        for packages with their last version name
+        """
+        d = {}
+        for k,v in self.eggs.items():
+            version_name = max(v)
+            d[k] = version_name.package_infos
+        return d
+    
     def crawl(self):
         """
         Crawl config file following the 'extend' option of 'Buildout' section
         """
         for item in os.listdir(self.eggs_dir):
-            infos = pkginfo.Develop(os.path.join(self.eggs_dir, item))
-            self.eggs.append( (infos.name, infos.version) )
+            egg_filepath = os.path.join(self.eggs_dir, item)
+            #print "Opening egg: ", egg_filepath
             
-            #self.add_egg(infos.name, Version(parse_version(infos.version), raw_version_name=infos.version))
-            self.add_egg(infos.name, Version(infos.version))
+            infos = pkginfo.Develop(os.path.join(self.eggs_dir, item))
+            
+            #print "Name:", infos.name
+            #print "-"*200
+            #print "Version:", infos.version
+            #print "Path:", os.path.join(self.eggs_dir, item)
+            #print "Url:", infos.home_page
+            #print "Summary:", len(infos.summary or '')
+            #print infos.description
+            #print
+            #print
+            self.add_egg(infos.name, Version(infos))
+    
+    def render(self):
+        return '\n'.join([self.format_egg_row(k,v.version) for k,v in self.clean_egg_list()])
 
 # Testing
 if __name__ == "__main__":

@@ -16,6 +16,8 @@ Require
 * argcomplete == 0.8.0;
 * argh == 0.24.1;
 
+Also this client rely on ``pkg_resources`` that comes from Distribute, but Distribute is not registered in required packages in the ``setup.py`` because it is embedded within PIP that is ofent allready installed on your system. So if the script complain about to import ``pkg_resources``, you will have to install PIP or Distribute.
+
 Usage
 =====
 
@@ -26,6 +28,7 @@ During the register or update action, if the eggs directory is given it will be 
 Website environment's datas can be setted either from the command line arguments or from a config file. If a config file is used it will be used to fill the default datas to send and you can overrides them with the command line arguments. 
 
 So if in the Config file you setted the ``user`` option to ``ping`` and set this option to ``pong`` in the command line args, the used value will be ``pong``.
+
 
 Config
 ******
@@ -84,4 +87,4 @@ If the website environment allready exists, the register command will get its da
 
 If it does not exist, it will create it, then send the egg list and save returned datas in the config file.
 
-
+Warning : You have to maintain a clean install for your eggs, the Gestus client will ensure to allways use the last egg version of a same package, so if you installed a last version for some tests and got back to a previous one for any reason, the client will even though register the last one because it don't know about the one you effectively use. So take care to this and clean your installed eggs when you have made some package testing in your environment.
