@@ -1,8 +1,10 @@
-.. _Emencia: http://www.emencia.com
+.. _buildout: http://www.buildout.org/
+.. _pip: http://www.pip-installer.org/
+.. _virtualenv: http://www.virtualenv.org/
 .. _Gestus: https://github.com/sveetch/Gestus
 .. _nap: https://github.com/kimmobrunfeldt/nap
 
-**Gestus-client** is the REST client to retrieve and push data on a `Gestus`_ app.
+**Gestus-client** is the REST client to retrieve and push data on a `Gestus`_ app. It is currently only working with eggs installation like in a `buildout`_ project.
 
 Install
 =======
@@ -17,6 +19,22 @@ Require
 * argh == 0.24.1;
 
 Also this client rely on ``pkg_resources`` that comes from Distribute, but Distribute is not registered in required packages in the ``setup.py`` because it is embedded within PIP that is ofent allready installed on your system. So if the script complain about to import ``pkg_resources``, you will have to install PIP or Distribute.
+
+PIP version
+-----------
+
+`nap`_ requires ``PIP >= 1.4``. You will have to update it if you have an exception like this during installation : ::
+
+    AttributeError: 'NoneType' object has no attribute 'skip_requirements_regex'
+    An error occurred when trying to install nap 1.0.1. Look above this message for any errors that were output by easy_install.
+    While:
+    Installing eggedpy.
+    Getting distribution for 'nap>=1.0.0'.
+    Error: Couldn't install: nap 1.0.1
+
+The simpliest method to resolve this is to simply update `pip`_ in your virtual environment to the last version : ::
+
+    pip install --upgrade pip
 
 Usage
 =====
@@ -62,6 +80,8 @@ There are all optionnal to register a new environment. But to update an allready
 
 * website_id = the website's ID as it has been registered on the Gestus service;
 * environment_id = the environment's ID as it has been registered on the Gestus service;
+
+You don't really have to take care about these optionnal options because they will be automatically retrieved and stored on the first register.
 
 Config saving
 -------------
