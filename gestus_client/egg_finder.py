@@ -1,4 +1,4 @@
-import os, ConfigParser, pkginfo, pkg_resources
+import os, configparser, pkginfo, pkg_resources
 
 class BaseFinder(object):
     """
@@ -20,7 +20,7 @@ class BaseFinder(object):
         for packages with their last version name
         """
         d = []
-        for k,v in self.eggs.items():
+        for k,v in list(self.eggs.items()):
             d.append( (k, v) )
         return d
     
@@ -30,13 +30,13 @@ class BaseFinder(object):
         for packages with their last version name
         """
         d = {}
-        for k,v in self.eggs.items():
+        for k,v in list(self.eggs.items()):
             d[k] = v.package_infos
         return d
     
     def get_eggs_dict(self):
         d = {}
-        for k,v in self.clean_eggs().items():
+        for k,v in list(self.clean_eggs().items()):
             summary = v.summary or ''
             d[k] = {
                 'version': v.version,
@@ -64,7 +64,7 @@ class BuildoutConfigFinder(BaseFinder):
         """
         Configure a ConfigParser and return it
         """
-        parser = ConfigParser.SafeConfigParser()
+        parser = configparser.SafeConfigParser()
         # Preserve case options
         parser.optionxform = str
         
@@ -96,7 +96,8 @@ class BuildoutConfigFinder(BaseFinder):
         # Following config extends if any
         try:
             config_extends = parser.get('buildout', 'extends')
-        except ConfigParser.NoSectionError, ConfigParser.NoOptionError:
+        except configparser.NoSectionError as xxx_todo_changeme:
+            configparser.NoOptionError = xxx_todo_changeme
             pass
         else:
             config_extends = os.path.join(current_path, config_extends)
@@ -173,7 +174,7 @@ class BuildoutEggdirFinder(BaseFinder):
         for packages with their last version name
         """
         d = []
-        for k,v in self.eggs.items():
+        for k,v in list(self.eggs.items()):
             version_name = max(v)
             d.append( (k, version_name.package_infos) )
         return d
@@ -184,7 +185,7 @@ class BuildoutEggdirFinder(BaseFinder):
         for packages with their last version name
         """
         d = {}
-        for k,v in self.eggs.items():
+        for k,v in list(self.eggs.items()):
             version_name = max(v)
             d[k] = version_name.package_infos
         return d
@@ -221,4 +222,4 @@ if __name__ == "__main__":
 
     finder = BuildoutEggdirFinder('../../../eggs')
     finder.crawl()
-    print finder.render()
+    print(finder.render())

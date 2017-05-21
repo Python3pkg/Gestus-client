@@ -85,7 +85,7 @@ class GestusClient(object):
         Print out API exception reason
         """
         msg = []
-        for k,v in response_json.items():
+        for k,v in list(response_json.items()):
             v = [item.encode('UTF8') for item in v]
             msg.append("- {0}: {1}".format(k, ', '.join(v)))
         return msg
@@ -172,7 +172,7 @@ class GestusClient(object):
             response = self.environment_detail_url.patch(data=str(json.dumps({'egg_list': eggs_map})), headers=self.client_headers)
             if response.status_code != 200:
                 if self.debug_requests:
-                    print response.json()
+                    print(response.json())
                 response.raise_for_status()
         
         return eggs_map
@@ -185,7 +185,7 @@ class GestusClient(object):
             response = self.website_detail_url.patch(data=json.dumps(website_kwargs), headers=self.client_headers)
             if response.status_code != 200:
                 if self.debug_requests:
-                    print response.json(indent=4)
+                    print(response.json(indent=4))
                 response.raise_for_status()
         
         # If egg directory is given, add the egg list to the update
@@ -196,7 +196,7 @@ class GestusClient(object):
             response = self.environment_detail_url.patch(data=json.dumps(environment_kwargs), headers=self.client_headers)
             if response.status_code != 200:
                 if self.debug_requests:
-                    print response.json()
+                    print(response.json())
                 response.raise_for_status()
         
 

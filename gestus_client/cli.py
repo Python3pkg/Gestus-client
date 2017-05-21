@@ -201,7 +201,7 @@ def update(args):
     # Init, load and builds
     root_logger = logging_handler.init_logging(args.loglevel.upper(), logfile=args.logfile)
     
-    print "Hello world!"
+    print("Hello world!")
     
     if args.timer:
         endtime = datetime.datetime.now()
